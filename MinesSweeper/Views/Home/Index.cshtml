@@ -1,0 +1,55 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<!doctype html>
+<html>
+<head>
+    <title>MineSweeper</title>
+    <meta charset="utf-8">
+    <link href="~/Content/style.css" rel="stylesheet" />
+    <script type="text/javascript" src="https://ajax.aspnetcdn.com/ajax/knockout/knockout-3.4.0.js"></script>
+    <script src="~/Scripts/knockout.mapping-latest.js"></script>
+    <script type="text/javascript" src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.10.2.min.js"></script>
+</head>
+<body>
+    <input type="text" data-bind="value:Name" /><br>
+    <strong data-bind="text:Name"></strong>
+    <div class="table">
+        <table id="tbl"  >
+            <tbody data-bind="foreach:{data:xells,as:'xel'}">
+                 <tr data-bind="foreach:{data:xel,as:'item'}">
+                    <td data-bind="text:item.State,click:$root.Swap,event:{contextmenu:$root.Flag}"></td>
+                  </tr>
+            </tbody>
+        </table>
+        <div data-bind="foreach:{data:xells,as:'xel'}">
+            <div data-bind="foreach:{data:xel,as:'item'}">
+                <strong data-bind="text:item.State"></strong>
+                </div>
+            </div> 
+    </div>
+<script type="text/javascript">
+   /* function handler(event) {
+        var target = event.target;
+        alert(event.target.tagName);
+        
+        //alert(event.target.innerHTML);
+        var tds = 0;
+        var trs = 0;
+        while (target != this) {
+            if (target.tagName == 'TD')
+                tds++;
+            if (target.tagName == 'TR')
+                trs++;
+            target = target.parentNode;
+        }
+        alert("["+trs+"]"+"["+tds+"]");
+    };
+
+    tbl.addEventListener('click', handler);*/
+</script>
+    <script src="~/Scripts/app.js"></script>
+</body>
+</html>

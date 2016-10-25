@@ -3,6 +3,8 @@ $(document).ready(function () {
     var bomb = "\u2688";
     var flag = "\u2691";
     var close = "\u2588";
+    var BIG_BOOM = false;
+    var OpenedCells = 0;
     var BOMBS = 10;
     var M = 9, N = 9;
     //Ctor for Cell object
@@ -22,39 +24,47 @@ function Cell(init) {
     this.IsClosed = function () {
         return this.Closed;
     }
+    this.open= function() {
+        this.Closed = false;
+        BIG_BOOM = this.Mined;
+        if (!this.Mined) {
+            OpenedCells++;
+            this.State = this.CountNeighborBombs.toString();
+            if (OpenedCells == (M * N) - BOMBS)
+                alert("You won!");
+        } else {
+            this.State = bomb;
+            alert("You lost!");
+        }
+    }
 }
     //Function for bombs computing around cell
 var ComputeBombs= function(data) {
     for (var i = 0; i < data.length; i++) {
         for (var j = 0; j < data[i].length; j++) {
-            if (data[i][j].IsMined()) {
-                continue;
+            if (!data[i][j].IsMined()) {
+                var count = 0;
+                for (var di = -1; di < 2; di++) {
+                    for (var dj = -1; dj < 2; dj++) {
+                        var y = i + di;
+                        var x = j + dj;
+                        if (y < 0 || y > M - 1 || x < 0 || x > N - 1) continue; //Bad coordinates
+                        count += (data[y][x].IsMined()) ? 1 : 0;    
+                    }
+                }
+                data[i][j].CountNeighborBombs = count;
             }
-            else {
-                if ((i-1)>=0 && data[i - 1][j].IsMined())
-                    data[i][j].CountNeighborBombs += 1;
-
-                if ((i-1)>=0 && (j-1)>=0 && data[i - 1][j-1].IsMined())
-                    data[i][j].CountNeighborBombs += 1;
-
-                if ((i - 1) >= 0 && (j + 1) <N && data[i - 1][j + 1].IsMined())
-                    data[i][j].CountNeighborBombs += 1;
-
-                if ((i + 1) < M && data[i + 1][j].IsMined())
-                    data[i][j].CountNeighborBombs += 1;
-
-                if ((i + 1) < M && (j - 1) >=0 && data[i + 1][j - 1].IsMined())
-                    data[i][j].CountNeighborBombs += 1;
-
-                if ((i + 1) < M && (j + 1) < N && data[i + 1][j + 1].IsMined())
-                    data[i][j].CountNeighborBombs += 1;
-
-                if ((j - 1) >= 0 && data[i][j - 1].IsMined())
-                    data[i][j].CountNeighborBombs += 1;
-
-                if ((j + 1) < N && data[i][j + 1].IsMined())
-                    data[i][j].CountNeighborBombs += 1;
-            }
+        }
+    }
+}
+var OpenCells=function(i, j) {
+    if (i < 0 || i > M - 1 || j < 0 || j > N - 1) return; //Bad coordinates
+    if (!cels[i][j].IsClosed()) return; // Cell is opened
+    cels[i][j].open();
+    if (cels[i][j].CountNeighborBombs > 0 || BIG_BOOM) return; //Cell not empty or player  lost
+    for (var di = -1; di < 2; di++) {
+        for (var dj = -1; dj < 2; dj++) {
+            OpenCells(i+di,j+dj); //Open cells around this cell
         }
     }
 }
@@ -94,26 +104,13 @@ var cels = new Array(M);
        xells: ko.mapping.fromJS(cels),
        Name: ko.observable('Roman'),
        Swap: function(e) {
-           //console.log(e.State + " " + e.Id[0] + e.Id[1] + e.Id);
-         //  console.log(cels);
-           //console.log(e.State());
-           //console.log(e.Id());
            var t = e.Id();
            var i = t[0], j = t[1];
-          // e.State = bomb;
-          // console.log(e.State);
-           var tmp = cels[i][j];
-           if (tmp.IsMined())
-               tmp.State = bomb;
-           else
-               tmp.State = tmp.CountNeighborBombs.toString();
+           OpenCells(i,j);
            Update(cels);
-          // console.log(cels);
        },
         Flag: function(e) {
-           // console.log(e.State());
             var t = e.Id();
-           //e.State = flag;
             var tmp = cels[t[0]][t[1]];
             tmp.State = flag;
             Update(cels);
@@ -122,7 +119,6 @@ var cels = new Array(M);
 
     function Update(data) {
         ko.mapping.fromJS(data,VM.xells);
-        //VM.xells = data;
     }
     function handler(event) {
     var target = event.target;
